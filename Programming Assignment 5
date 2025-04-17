@@ -1,0 +1,250 @@
+; Name & Email must be EXACTLY as in Gradescope roster!
+; Name: Andrew Permatigari
+; Email: 
+; 
+; Assignment name: Assignment 5
+; Lab section: 
+; TA: 
+; 
+; I hereby certify that I have not received assistance on this assignment,
+; or used code, from ANY outside source other than the instruction team
+; (apart from what was provided in the starter file).
+;
+;=================================================================================
+; PUT ALL YOUR CODE AFTER THE main LABEL
+;=================================================================================
+
+;---------------------------------------------------------------------------------
+;  Initialize program by setting stack pointer and calling main subroutine
+;---------------------------------------------------------------------------------
+.ORIG x3000
+
+; initialize the stack
+ld r6, stack_addr
+
+; call main subroutine
+lea r5, main
+jsrr r5
+
+;---------------------------------------------------------------------------------
+; Main Subroutine
+;---------------------------------------------------------------------------------
+main
+; get a string from the user
+; * put your code here
+LEA R1, user_prompt 
+LEA R2, user_string
+                    
+LD R5, get_user_string_addr
+JSRR R5
+
+; find size of input string
+; * put your code here
+LEA R1, user_string
+LD R5, strlen_addr
+JSRR R5 
+
+; call palindrome method
+; * put your code here
+LEA R1, user_string         
+ADD R2, R1, R0            
+AND R0, R0, R0              
+BRz #1                     
+    ADD R2, R2, #-1            
+                    
+LD R5, palindrome_addr
+JSRR R5 
+
+; determine of stirng is a palindrome
+; * put your code here  
+ADD R1, R0, #0              
+
+; print the result to the screen
+; * put your code here
+LEA R0, result_string
+PUTS
+                    
+
+; decide whether or not to print "not"
+; * put your code here
+AND R1, R1, R1              
+BRnp print_final_result
+LEA R0, not_string
+PUTS
+print_final_result
+
+LEA R0, final_string
+PUTS
+
+HALT
+;---------------------------------------------------------------------------------
+; Required labels/addresses
+;---------------------------------------------------------------------------------
+
+; Stack address ** DO NOT CHANGE **
+stack_addr           .FILL    xFE00
+
+; Addresses of subroutines, other than main
+get_user_string_addr .FILL    x3200
+strlen_addr          .FILL    x3300
+palindrome_addr      .FILL	  x3400
+
+
+; Reserve memory for strings in the progrtam
+user_prompt          .STRINGZ "Enter a string: "
+result_string        .STRINGZ "The string is "
+not_string           .STRINGZ "not "
+final_string         .STRINGZ	"a palindrome\n"
+
+; Reserve memory for user input string
+user_string          .BLKW	  100
+
+.END
+
+;---------------------------------------------------------------------------------
+; get_user_string - get the user's input and stores it
+; parameter: R1 - user_prompt string address
+; parameter: R2 - address where the user_string should be stored
+;
+; returns: doesn't return anything
+;---------------------------------------------------------------------------------
+.ORIG x3200
+get_user_string
+; Backup all used registers, R7 first, using proper stack discipline
+ST R7, Backup_R7_3200 
+ST R6, Backup_R6_3200
+ST R5, Backup_R5_3200
+ST R3, Backup_R3_3200
+ST R2, Backup_R2_3200
+
+AND R0, R0, #0
+ADD R0, R0, R1          
+PUTS                        
+                    
+LD R1, newline
+NOT R1, R1
+ADD R1, R1, #1              
+                    
+INPUT_LOOP
+    GETC
+    OUT
+    ADD R3, R0, #0         
+    ADD R3, R3, R1
+    BRnp #2                 
+        STR R3, R2, #0      
+        BR END_INPUT 
+    STR R0, R2, #0          
+    ADD R2, R2, #1         
+    BR INPUT_LOOP
+    
+    END_INPUT
+
+; Resture all used registers, R7 last, using proper stack discipline
+LD R2, Backup_R2_3200     
+LD R3, Backup_R3_3200      
+LD R5, Backup_R5_3200  
+LD R6, Backup_R6_3200 
+LD R7, Backup_R7_3200
+
+RET
+
+Backup_R2_3200      .blkw #1
+Backup_R3_3200      .blkw #1
+Backup_R5_3200      .blkw #1
+Backup_R6_3200      .blkw #1
+Backup_R7_3200      .blkw #1
+newline             .FILL x0A
+
+.END
+
+;---------------------------------------------------------------------------------
+; strlen - compute the length of a zero terminated string
+;
+; parameter: R1 - the address of a zero terminated string
+;
+; returns: The length of the string
+;--------------------------------------------------------------------------------
+.ORIG x3300
+strlen
+; Backup all used registers, R7 first, using proper stack discipline
+ST R7, Backup_R7_3300 
+ST R6, Backup_R6_3300
+ST R5, Backup_R5_3300
+ST R3, Backup_R3_3300
+ST R2, Backup_R2_3300
+
+AND R0, R0, #0
+                    
+LOOP_FOR_COUNT
+    LDR R2, R1, #0  
+    BRz END_COUNT       
+    ADD R0, R0, #1      
+    ADD R1, R1, #1      
+    BR LOOP_FOR_COUNT
+    
+END_COUNT
+
+; Resture all used registers, R7 last, using proper stack discipline
+LD R2, Backup_R2_3300     
+LD R3, Backup_R3_3300      
+LD R5, Backup_R5_3300 
+LD R6, Backup_R6_3300
+LD R7, Backup_R7_3300
+
+RET
+
+Backup_R2_3300      .blkw #1
+Backup_R3_3300      .blkw #1
+Backup_R5_3300      .blkw #1
+Backup_R6_3300      .blkw #1
+Backup_R7_3300      .blkw #1
+
+.END
+;---------------------------------------------------------------------------------
+; palindrome - checks if the string is a parameter
+; parameter: R1 - the address of the first letter (in the string)
+; parameter: R2 - the address of the last letter
+; parameter: R6 - the address of stack    
+; returns: R0
+;---------------------------------------------------------------------------------
+.ORIG x3400
+palindrome ; Hint, do not change this label and use for recursive alls
+; Backup all used registers, R7 first, using proper stack discipline
+ADD R6, R6, #-1
+STR R7, R6, #0
+            
+NOT R1, R1
+ADD R1, R1, #1         
+            
+ADD R3, R1, R2          
+BRp #3                
+AND R0, R0, #0     
+                                  
+ADD R0, R0, #1     
+BR FINISH
+            
+ADD R1, R1, #-1 
+NOT R1, R1             
+            
+LDR R4, R1, #0
+LDR R5, R2, #0
+NOT R5, R5 
+ADD R5, R5, #1         
+            
+ADD R3, R4, R5
+BRz #2                  
+    AND R0, R0, #0     
+    BR FINISH 
+                
+ADD R1, R1, #1         
+ADD R2, R2, #-1       
+JSR palindrome
+FINISH
+
+; Resture all used registers, R7 last, using proper stack discipline
+LDR R7, R6, #0   
+ADD R6, R6, #1
+
+RET
+Backup_R7_3400      .blkw #1
+.END
