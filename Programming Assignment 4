@@ -1,0 +1,230 @@
+;=========================================================================
+; Name & Email must be EXACTLY as in Gradescope roster!
+; Name: Andrew Permatigari
+; Email: 
+; 
+; Assignment name: Assignment 4
+; Lab section: 
+; TA: 
+; 
+; I hereby certify that I have not received assistance on this assignment,
+; or used code, from ANY outside source other than the instruction team
+; (apart from what was provided in the starter file).
+;
+;=================================================================================
+;THE BINARY REPRESENTATION OF THE USER-ENTERED DECIMAL NUMBER MUST BE STORED IN R4
+;=================================================================================
+
+.ORIG x3000		
+
+Start_Loop
+    LD R0, introPromptPtr
+    PUTS 
+                    
+    LD R1, ARRAY_PTR
+    LD R2, ARRAY_SIZE
+                
+    AND R4, R4, #0              
+                    
+    AND R5, R5, #0
+   
+    AND R6, R6, #0
+                    
+    LD  R5, dash
+    NOT R5, R5
+    ADD R5, R5, #1              
+
+    LD  R6, newline
+    NOT R6, R6
+    ADD R6, R6, #1              
+                    
+    AND R3, R3, #0              
+                    
+    GETC
+    OUT
+                    
+    ADD R3, R0, R5
+   
+    BRz #6                      
+        ADD R3, R3, #2          
+    BRz #8                  
+                        
+    AND R3, R3, #0
+   
+    ADD R3, R6, R0
+   
+    BRz #80 
+    BRnp #6                        
+                    
+    STR R0, R1, #0             
+   
+    ADD R1, R1, #1              
+   
+    ADD R2, R2, #-1             
+   
+    BRp #27                    
+                    
+    ADD R2, R2, #-1             
+	BRp #25   
+	
+	LD  R5, Num_0
+    NOT R5, R5
+    ADD R5, R5, #1             
+                    
+    ADD R3, R0, R5
+    
+    BRzp #3                      
+        LD R0, errorMessagePtr
+        PUTS 
+        BRnzp Start_Loop
+                    
+
+	LD  R5, Num_9
+    NOT R5, R5
+    ADD R5, R5, #1              
+                    
+    ADD R3, R0, R5
+    BRnz #3                    
+        LD R0, errorMessagePtr
+        PUTS 
+        BRnzp Start_Loop
+				    
+	STR R0, R1, #0
+    
+    ADD R4, R4, R0              
+	
+	ADD R1, R1, #1            
+    
+    ADD R2, R2, #-2             
+                    
+    LD  R5, Num_0
+    NOT R5, R5
+    ADD R5, R5, #1              
+                    
+    ADD R4, R4, R5              
+					
+	AND R4, R4, R4             
+					
+Input_Loop
+    GETC
+    OUT
+                        
+    AND R3, R3, #0
+    ADD R3, R6, R0
+    BRz #32                    
+                        
+    LD  R5, Num_0
+    NOT R5, R5
+    ADD R5, R5, #1             
+                    
+    ADD R3, R0, R5
+    BRzp #3                     
+    
+    LD R0, errorMessagePtr
+    PUTS 
+    
+    BRnzp Start_Loop
+                        
+    LD  R5, Num_9
+    NOT R5, R5
+    ADD R5, R5, #1              
+                    
+    ADD R3, R0, R5
+    BRnz #3                     
+    
+    LD R0, errorMessagePtr
+    PUTS 
+    
+    BRnzp Start_Loop
+                        
+    STR R0, R1, #0              
+                        
+    LD  R5, Num_0
+    NOT R5, R5
+    ADD R5, R5, #1              
+    
+    ADD R0, R5, R0             
+                        
+    AND R3, R3, #0
+                        
+    ADD R3, R4, #0              
+    
+    ADD R3, R3, R3              
+    
+    ADD R3, R3, R3             
+    
+    ADD R3, R3, R3             
+	
+	ADD R3, R4, R3             
+
+	ADD R3, R4, R3              
+				        
+	ADD R4, R3, R0             
+				        
+	ADD R1, R1, #1              
+    
+    ADD R2, R2, #-1             
+   
+    BRp Input_Loop
+
+    LD  R5, dash
+    NOT R5, R5
+    ADD R5, R5, #1              
+                    
+    LD R1, ARRAY_PTR
+    LDR R2, R1, #0
+    ADD R2, R2, R5
+    
+    BRnp #2                     
+        NOT R4, R4
+        ADD R4, R4, #1
+                        
+    LD R0, newline
+    OUT
+
+HALT
+
+;---------------	
+; Program Data
+;---------------
+
+introPromptPtr  .FILL xB000
+errorMessagePtr .FILL xB200
+
+dash          .FILL x2D       
+newline          .FILL x0A       
+Num_0          .FILL x30       
+Num_9          .FILL x39       
+
+ARRAY_PTR       .FILL x4000     
+ARRAY_SIZE      .FILL #6        
+
+.END
+;------------
+; Remote data
+;------------
+.ORIG xB000	 ; intro prompt
+.STRINGZ	 "Input a positive or negative decimal number (max 5 digits), followed by ENTER\n"
+
+.END					
+					
+.ORIG xB200	 ; error message
+.STRINGZ	 "ERROR: invalid input\n"
+
+.END 
+
+.ORIG x4000
+ARRAY       .BLKW #6
+;---------------
+; END of PROGRAM
+;---------------
+.END
+
+;-------------------
+; PURPOSE of PROGRAM
+;-------------------
+; Convert a sequence of up to 5 user-entered ascii numeric digits into a 16-bit two's complement binary representation of the number.
+; if the input sequence is less than 5 digits, it will be user-terminated with a newline (ENTER).
+; Otherwise, the program will emit its own newline after 5 input digits.
+; The program must end with a *single* newline, entered either by the user (< 5 digits), or by the program (5 digits)
+; Input validation is performed on the individual characters as they are input, but not on the magnitude of the number.
